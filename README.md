@@ -1,43 +1,51 @@
-# Intelligent Logistics RPA & Document Processing Pipeline
+# Intelligent Logistics RPA Pipeline
 
-An enterprise-grade Robotic Process Automation (RPA) and Intelligent Document Processing (IDP) solution designed for **Proficient Cargo Services India LLP**. This system automates the logistics data workflow by monitoring email dispatch, executing local Optical Character Recognition (OCR), classifying logistical documents, and structuring extracted data into multi-sheet Excel workbooks for downstream integration into the USOFT ecosystem.
+### 🌐 Repository Address
 
----
-
-## 🛠️ Core System Architecture
-
-The automation pipeline utilizes local processing engines to ensure data sovereignty and eliminate recurring API costs.
-
-1. **Ingestion Module (IMAP):** Monitors `proficientdocuments@gmail.com` in real-time, filters secure incoming traffic from verified dispatchers, and downloads transactional documentation.
-2. **OCR Engine (Tesseract):** Performs local multi-language pixel-to-text extraction supporting mixed English and Indonesian logistical terminology.
-3. **Deterministic Classifier:** Analyzes textual semantics to segregate files into `TRANSPORT_DOCUMENT` (Bill of Lading / Airway Bill) or `INVOICE_DOCUMENT` based on institutional keywords.
-4. **Data Extraction & Structuring (Regex & Pandas):** Parses high-fidelity data points (Waybill Numbers, Carrier Weights, Line-item descriptions) and compiles them into a standardized multi-sheet workbook (`GoogleAIOutputsheet.xlsx`).
-5. **Distribution Module (FTP & SMTP):** Syncs output files directly to the corporate FTP instance for USOFT ingestion and dispatches automated end-of-day summary analytics to operations management.
-
----
-
-## 🚀 Server Installation & Deployment Guide
-
-### Option A: Deployment on Linux Server (Ubuntu/Debian VPS)
-```bash
-sudo apt update && sudo apt upgrade -y
-sudo apt install tesseract-ocr tesseract-ocr-eng tesseract-ocr-ind python3 python3-pip -y
-git clone https://github.com/nightfurry325-code/ocr-logistics-rpa.git
-cd ocr-logistics-rpa
-pip3 install pandas openpyxl Pillow
+```text
+https://github.com/nightfurry325-code/ocr-logistics-rpa.git
 ```
 
-### Option B: Deployment on Windows Server
-1. Download Python 3.10+ and add to PATH.
-2. Download Tesseract OCR Windows Installer, install it, and add the folder path to Environment Variables.
-3. Run: `pip install pandas openpyxl Pillow`
+---
+
+## 🛠️ Project Architecture Diagram
+
+```mermaid
+graph TD
+    A[LOGISTICS DOCUMENT IMAGE\ninput.jpg] -->|1. System Polling Loop| B(TESSERACT OCR ENGINE\nExtracts English & Indonesian Text)
+    B -->|2. Text Semantics| C{DETERMINISTIC CLASSIFIER\nDetects Institutional Keywords}
+    C -->|TRANSPORT Keyword| D[CLASSIFIED AS:\nTRANSPORT_DOCUMENT]
+    C -->|INVOICE Keyword| E[CLASSIFIED AS:\nINVOICE_DOCUMENT]
+    D --> F(REGEX & PANDAS DATA PARSING\nWaybills, Weights, Items)
+    E --> F
+    F -->|3. Compile Structure| G[MULTI-SHEET EXCEL WORKBOOK\nGoogleAIOutputsheet.xlsx]
+    G -->|4a. Automated Sync| H(FTP UPLOAD\nto USOFT Server)
+    G -->|4b. End-of-Day Summary| I(EMAIL SMTP REPORT\nto operations management)
+
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style G fill:#ccf,stroke:#f66,stroke-width:2px,stroke-dasharray: 5, 5
+```
 
 ---
 
-## ⚙️ Production Configuration
-Before launching the pipeline execution cycle, configure the secure access variables within the script environment:
-* **Gmail IMAP Account & 16-digit App Password**
-* **Corporate FTP Server Integration (Host, User, Pass)**
-* **Management Reporting Distribution List**
+## An automated RPA system built for **Proficient Cargo Services India LLP**.
 
-*Note: The script runs on an infinite automated polling loop.*
+This system processes incoming shipping documents via OCR, classifies them, and formats the data into structured multi-sheet Excel outputs.
+
+### Installation (Linux Server)
+1. **Install OCR & Dependencies:**
+   ```bash
+   sudo apt update
+   sudo apt install tesseract-ocr tesseract-ocr-eng tesseract-ocr-ind python3 python3-pip -y
+   ```
+2. **Install Python Libraries:**
+   ```bash
+   pip3 install pandas openpyxl Pillow
+   ```
+
+### Executing the Program
+Run the daemon loop:
+```bash
+python3 ocr_run.sh
+```
+*The script will poll the system dynamically every few minutes.*
