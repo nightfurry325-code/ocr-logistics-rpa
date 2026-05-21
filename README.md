@@ -1,10 +1,7 @@
-# Intelligent Logistics RPA Pipeline
+# Intelligent Logistics RPA & Document Processing Pipeline
 
-### 🌐 Repository Address
-
-```text
-https://github.com/nightfurry325-code/ocr-logistics-rpa.git
-```
+## 📝 Project Description
+An enterprise-grade Robotic Process Automation (RPA) and Intelligent Document Processing (IDP) solution custom-built for **Proficient Cargo Services India LLP**. This system automates the manual logistics workflow by dynamically monitoring incoming email dispatches via secure IMAP, executing local multi-language Optical Character Recognition (OCR), classifying documents based on institutional semantics, and structuring extracted high-fidelity data into clean multi-sheet Excel reports. The final pipeline ensures automated operational synchronizations directly to corporate FTP instances for USOFT ingestion, reducing processing overhead and eliminating recurring external API reliance.
 
 ---
 
@@ -36,24 +33,28 @@ graph TD
 
 ---
 
-## An automated RPA system built for **Proficient Cargo Services India LLP**.
+## 📊 Statement of Work (SoW) Development Status
 
-This system processes incoming shipping documents via OCR, classifies them, and formats the data into structured multi-sheet Excel outputs.
+| SoW Module & Criteria | Implementation Status | Technical Details / Dependencies |
+| :--- | :--- | :--- |
+| **Module 1: Automated Email Ingestion** | 🟢 **Completed** | Full IMAP attachment downloader engine is ready to fetch incoming documents. |
+| **Module 2: Local OCR & Document Classification** | 🟢 **Completed** | Tesseract OCR core successfully isolates text and splits data into *Invoice* vs *Transport* docs. |
+| **Module 3: Data Extraction & Excel Structuring** | 🟢 **Completed** | Regex engine parses variables into standard multi-sheet `GoogleAIOutputsheet.xlsx`. |
+| **Module 4: FTP Sync & Email Reporting** | 🟡 **In Progress (Partial)** | Core delivery script is built. **Requires client's FTP credentials and Gmail App Password to activate live deployment.** |
+| **Module 5: Daemon Automation (Polling Loop)** | 🟢 **Completed** | Continuous background processing loop (`ocr_run.sh`) is operational for server execution. |
 
-### Installation (Linux Server)
-1. **Install OCR & Dependencies:**
-   ```bash
-   sudo apt update
-   sudo apt install tesseract-ocr tesseract-ocr-eng tesseract-ocr-ind python3 python3-pip -y
-   ```
-2. **Install Python Libraries:**
-   ```bash
-   pip3 install pandas openpyxl Pillow
-   ```
+---
+
+## 🚀 Server Installation & Deployment Guide
+
+### Linux Server Deployment (Ubuntu/Debian)
+```bash
+sudo apt update
+sudo apt install tesseract-ocr tesseract-ocr-eng tesseract-ocr-ind python3 python3-pip -y
+pip3 install pandas openpyxl Pillow
+```
 
 ### Executing the Program
-Run the daemon loop:
 ```bash
 python3 ocr_run.sh
 ```
-*The script will poll the system dynamically every few minutes.*
