@@ -22,8 +22,16 @@ graph TD
     G -->|4a. Automated Sync| H(FTP UPLOAD\nto USOFT Server)
     G -->|4b. End-of-Day Summary| I(EMAIL SMTP REPORT\nto operations management)
 
-    style A fill:#f9f,stroke:#333,stroke-width:2px
-    style G fill:#ccf,stroke:#f66,stroke-width:2px,stroke-dasharray: 5, 5
+    %% Neon Cyan Styling
+    style A fill:#00f2fe,stroke:#020c1b,stroke-width:2px,color:#020c1b
+    style B fill:#00b4db,stroke:#020c1b,stroke-width:2px,color:#020c1b
+    style C fill:#10ac84,stroke:#020c1b,stroke-width:2px,color:#fff
+    style D fill:#eccc68,stroke:#020c1b,stroke-width:2px,color:#020c1b
+    style E fill:#ffa502,stroke:#020c1b,stroke-width:2px,color:#020c1b
+    style F fill:#00b4db,stroke:#020c1b,stroke-width:2px,color:#020c1b
+    style G fill:#00f2fe,stroke:#020c1b,stroke-width:3px,color:#020c1b
+    style H fill:#2f3542,stroke:#00f2fe,stroke-width:2px,color:#00f2fe
+    style I fill:#2f3542,stroke:#00f2fe,stroke-width:2px,color:#00f2fe
 ```
 
 ---
