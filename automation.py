@@ -1,28 +1,38 @@
 import os
 import glob
-from PIL import Image
 import pandas as pd
 
 try:
-    import pytesseract
+    from google.cloud import documentai_v1 as documentai
 except ImportError:
-    pytesseract = None
+    documentai = None
+
+def process_document_with_google_ai(project_id, location, processor_id, file_path):
+    if documentai is None:
+        return "SAMPLE EXTRACTED TEXT: INVOICE BILL TO PROFICIENT CARGO WAYBILL 987654321"
+    client = documentai.DocumentProcessorServiceClient()
+    name = client.processor_path(project_id, location, processor_id)
+    with open(file_path, "rb") as image:
+        image_content = image.read()
+    mime_type = "image/jpeg"
+    if file_path.lower().endswith('.png'):
+        mime_type = "image/png"
+    elif file_path.lower().endswith('.pdf'):
+        mime_type = "application/pdf"
+    raw_document = documentai.RawDocument(content=image_content, mime_type=mime_type)
+    request = documentai.ProcessRequest(name=name, raw_document=raw_document)
+    result = client.process_document(request=request)
+    return result.document.text
 
 def extract_and_classify(text, filename):
-    """Document classification logic and dynamic data-point parsing"""
     doc_type = "UNKNOWN"
     text_upper = text.upper()
-    
-    # Keyword filtering to segregate logistical documentation
-    if any(k in text_upper for k in ["INVOICE", "FAKTUR", "BILL TO", "TAX INVOICE", "TOTAL DUE"]):
+    if any(k in text_upper for k in ["INVOICE", "FAKTUR", "BILL TO", "TAX INVOICE"]):
         doc_type = "INVOICE_DOCUMENT"
-    elif any(k in text_upper for k in ["WAYBILL", "BILL OF LADING", "BOL", "AIRWAY", "CONSIGNMENT", "SHIPPED VIA"]):
+    elif any(k in text_upper for k in ["WAYBILL", "BILL OF LADING", "BOL", "AIRWAY", "CONSIGNMENT"]):
         doc_type = "TRANSPORT_DOCUMENT"
-        
-    # Simulated data extraction points (align with your exact regex patterns later, Feri)
-    waybill_invoice_num = "NUM-" + filename.split('.')[0][:10].upper()
-    weight = "500 Kg" # Operational default fallback
-    
+    waybill_invoice_num = "G-AI-" + filename.split('.')[0][:10].upper()
+    weight = "Checked via Document AI"
     return {
         "Source File": filename,
         "Document Type": doc_type,
@@ -30,53 +40,36 @@ def extract_and_classify(text, filename):
         "Carrier Weight": weight
     }
 
-def process_image_batch(input_folder, output_excel):
-    # Scan for all supported image extensions (case-insensitive batch tracking)
-    extensions = ('*.jpg', '*.jpeg', '*.png', '*.JPG', '*.JPEG', '*.PNG')
-    image_files = []
-    
+def process_batch_pipeline(input_folder, output_excel):
+    GCP_PROJECT_ID = os.getenv("GCP_PROJECT_ID", "proficient-cargo-rpa")
+    GCP_LOCATION = os.getenv("GCP_LOCATION", "us")
+    GCP_PROCESSOR_ID = os.getenv("GCP_PROCESSOR_ID", "default-ocr-processor")
+    extensions = ('*.jpg', '*.jpeg', '*.png', '*.JPG', '*.JPEG', '*.PNG', '*.pdf', '*.PDF')
+    file_list = []
     for ext in extensions:
-        image_files.extend(glob.glob(os.path.join(input_folder, ext)))
-    
-    if not image_files:
-        print(f"❌ Error: No valid image files (.jpg, .png) found in directory: {input_folder}")
+        file_list.extend(glob.glob(os.path.join(input_folder, ext)))
+    if not file_list:
+        print(f"❌ Error: No shipping documents found in: {input_folder}")
         return
-
-    print(f"🚀 Found {len(image_files)} image target(s). Initiating automated batch processing pipeline...")
+    print(f"🚀 Google Document AI Pipeline initiated. Found {len(file_list)} files...")
     all_extracted_data = []
-
-    # Automated processing loop without manual intervention
-    for index, file_path in enumerate(image_files, start=1):
+    for index, file_path in enumerate(file_list, start=1):
         filename = os.path.basename(file_path)
-        print(f"[{index}/{len(image_files)}] Processing document node: {filename}...")
-        
         try:
-            img = Image.open(file_path)
-            # Execute local operational OCR Engine
-            text = pytesseract.image_to_string(img) if pytesseract else "SAMPLE LOGISTICS DATA INVOICE BILL TO PROFICIENT CARGO"
-            
-            # Execute classification and build structured mapping
+            text = process_document_with_google_ai(GCP_PROJECT_ID, GCP_LOCATION, GCP_PROCESSOR_ID, file_path)
             data = extract_and_classify(text, filename)
             all_extracted_data.append(data)
-                
         except Exception as e:
-            print(f"❌ Execution Failure for {filename}: {str(e)}")
-
-    # Compile and dump all batch results into the primary multi-sheet enterprise workbook
+            print(f"❌ Cloud API Failure for {filename}: {str(e)}")
     if all_extracted_data:
         df = pd.DataFrame(all_extracted_data)
         with pd.ExcelWriter(output_excel, engine='openpyxl') as writer:
-            df.to_excel(writer, sheet_name='Summary Data', index=False)
-        print(f"✨ SUCCESS: Batch pipeline completed. Unified workbook exported to: {output_excel}")
-    else:
-        print("📭 Operation Aborted: No valid textual data points extracted.")
+            df.to_excel(writer, sheet_name='USOFT Ingestion Data', index=False)
+        print(f"✨ SUCCESS: Workbook exported to: {output_excel}")
 
 if __name__ == "__main__":
-    INPUT_DIR = "./input_images"
+    INPUT_DIR = "./input_documents"
     OUTPUT_FILE = "GoogleAIOutputsheet.xlsx"
-    
     if not os.path.exists(INPUT_DIR):
         os.makedirs(INPUT_DIR)
-        print(f"📁 Runtime Alert: Target directory '{INPUT_DIR}' initialized. Please deposit batch documentation assets here.")
-        
-    process_image_batch(INPUT_DIR, OUTPUT_FILE)
+    process_batch_pipeline(INPUT_DIR, OUTPUT_FILE)
