@@ -1,7 +1,7 @@
 # Intelligent Logistics RPA & Document Processing Pipeline
 
 ## 📝 Project Description
-An enterprise-grade Robotic Process Automation (RPA) and Intelligent Document Processing (IDP) solution custom-built for **Proficient Cargo Services India LLP**. This system automates the manual logistics workflow by dynamically monitoring incoming email dispatches via secure IMAP, executing local multi-language Optical Character Recognition (OCR), classifying documents based on institutional semantics, and structuring extracted high-fidelity data into clean multi-sheet Excel reports. The final pipeline ensures automated operational synchronizations directly to corporate FTP instances for USOFT ingestion, reducing processing overhead and eliminating recurring external API reliance.
+An enterprise-grade Robotic Process Automation (RPA) and Intelligent Document Processing (IDP) solution custom-built for **Proficient Cargo Services India LLP**. This system automates manual logistics workflows by dynamically executing local multi-language Optical Character Recognition (OCR) on image assets, classifying documents based on institutional semantics, and structuring extracted high-fidelity data into clean multi-sheet Excel reports. The pipeline is built with automated batch processing capabilities, allowing operations teams to drop hundreds of logistical documents into the processing node simultaneously, eliminating recurring external API reliance.
 
 ---
 
@@ -9,13 +9,13 @@ An enterprise-grade Robotic Process Automation (RPA) and Intelligent Document Pr
 
 ```mermaid
 graph TD
-    A[LOGISTICS DOCUMENT IMAGE\ninput.jpg] -->|1. System Polling Loop| B(TESSERACT OCR ENGINE\nExtracts English & Indonesian Text)
+    A[BATCH IMAGE INPUTS\ninput_images/*] -->|1. Automated Batch Scanning| B(TESSERACT OCR ENGINE\nExtracts English & Indonesian Text)
     B -->|2. Text Semantics| C{DETERMINISTIC CLASSIFIER\nDetects Institutional Keywords}
     C -->|TRANSPORT Keyword| D[CLASSIFIED AS:\nTRANSPORT_DOCUMENT]
     C -->|INVOICE Keyword| E[CLASSIFIED AS:\nINVOICE_DOCUMENT]
     D --> F(REGEX & PANDAS DATA PARSING\nWaybills, Weights, Items)
     E --> F
-    F -->|3. Compile Structure| G[MULTI-SHEET EXCEL WORKBOOK\nGoogleAIOutputsheet.xlsx]
+    F -->|3. Compile Batch Data| G[MULTI-SHEET EXCEL WORKBOOK\nGoogleAIOutputsheet.xlsx]
     G -->|4a. Automated Sync| H(FTP UPLOAD\nto USOFT Server)
     G -->|4b. End-of-Day Summary| I(EMAIL SMTP REPORT\nto operations management)
 
@@ -38,10 +38,10 @@ graph TD
 | SoW Module & Criteria | Implementation Status | Technical Details / Dependencies |
 | :--- | :--- | :--- |
 | **Module 1: Automated Email Ingestion** | 🟢 **Completed** | Full IMAP attachment downloader engine is ready to fetch incoming documents. |
-| **Module 2: Local OCR & Document Classification** | 🟢 **Completed** | Tesseract OCR core successfully isolates text and splits data into *Invoice* vs *Transport* docs. |
-| **Module 3: Data Extraction & Excel Structuring** | 🟢 **Completed** | Regex engine parses variables into standard multi-sheet `GoogleAIOutputsheet.xlsx`. |
+| **Module 2: Batch OCR & Document Classification** | 🟢 **Completed** | Local Tesseract OCR core automatically processes multiple files simultaneously and splits data into *Invoice* vs *Transport* nodes. |
+| **Module 3: Data Extraction & Excel Structuring** | 🟢 **Completed** | Regex engine parses all extracted batch variables into a unified multi-sheet `GoogleAIOutputsheet.xlsx`. |
 | **Module 4: FTP Sync & Email Reporting** | 🟡 **In Progress (Partial)** | Core delivery script is built. **Requires client's FTP credentials and Gmail App Password to activate live deployment.** |
-| **Module 5: Daemon Automation (Polling Loop)** | 🟢 **Completed** | Continuous background processing loop (`ocr_run.sh`) is operational for server execution. |
+| **Module 5: Daemon Automation (Batch Loop)** | 🟢 **Completed** | Continuous background batch processing engine (`automation.py`) is fully operational for server execution. |
 
 ---
 
@@ -51,10 +51,13 @@ graph TD
 ```bash
 sudo apt update
 sudo apt install tesseract-ocr tesseract-ocr-eng tesseract-ocr-ind python3 python3-pip -y
-pip3 install pandas openpyxl Pillow
+pip3 install pandas openpyxl Pillow pytesseract
 ```
 
-### Executing the Program
+### Executing the Batch Pipeline
+1. Deposit your logistics document images (`.jpg`, `.png`) inside the `input_images` directory.
+2. Run the automated processing script:
 ```bash
-python3 ocr_run.sh
+python3 automation.py
 ```
+3. The system will compile all data and output a unified report named `GoogleAIOutputsheet.xlsx`.
